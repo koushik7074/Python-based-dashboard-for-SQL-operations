@@ -24,20 +24,20 @@ def get_basic_info(cursor):
 
     "Total Categories Dealing": "select count(distinct category) as total_categories from products;",
 
-    "Total Sale Value (last 3 months)": """ 
-        select round(sum(abs(se.change_quantity) * p.price), 2) as total_sales_value_in_last_3_months
+    "Total Sale Value (last 9 months)": """ 
+        select round(sum(abs(se.change_quantity) * p.price), 2) as total_sales_value_in_last_9_months
         from stock_entries as se
         join products as p 
         on p.product_id = se.product_id
-        where se.change_type='Sale' and se.entry_date >= (select date_sub(max(entry_date), interval 3 month) from stock_entries);
+        where se.change_type='Sale' and se.entry_date >= (select date_sub(max(entry_date), interval 9 month) from stock_entries);
         """,
 
-    "Total Restock Value (last 3 months)": """ 
-        select round(sum(abs(se.change_quantity) * p.price), 2) as total_restock_value_in_last_3_months
+    "Total Restock Value (last 9 months)": """ 
+        select round(sum(abs(se.change_quantity) * p.price), 2) as total_restock_value_in_last_9_months
         from stock_entries as se
         join products as p 
         on p.product_id = se.product_id
-        where se.change_type='Restock' and se.entry_date >= (select date_sub(max(entry_date), interval 3 month) from stock_entries);
+        where se.change_type='Restock' and se.entry_date >= (select date_sub(max(entry_date), interval 9 month) from stock_entries);
         """,
 
     "Below Reorders and No Pending Reorders": """ 
@@ -83,4 +83,19 @@ def get_additional_tables(cursor):
         tables[label] = cursor.fetchall()
 
     return tables
+
+def add_new_manual_id(cursor, db, p_name, p_category, p_price, p_stock, p_reorder, p_supplier):
+    proc_call = "call AddNewProductManualID(%s, %s, %s, %s, %s, %s)"
+    params = (p_name, p_category, p_price, p_stock, p_reorder, p_supplier)
+    cursor.execute(proc_call, params)
+    db.commit()
+
+def get_categories(cursor):
+    cursor.execute("select distinct category from products order by category asc")
+    rows = cursor.fetchall()
+    return [row['category'] for row in rows]
+
+def get_suppliers(cursor):
+    cursor.execute("select supplier_id, supplier_name from suppliers order by supplier_name asc")
+    return cursor.fetchall()
 
