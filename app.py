@@ -8,7 +8,8 @@ from db_functions import (
     get_categories,
     get_suppliers,
     get_all_products,
-    get_product_history
+    get_product_history,
+    place_reorder
 )
 
 st.sidebar.title("Inventory Management Dashboard")
@@ -47,7 +48,7 @@ elif option == 'Operational Tasks':
     st.header("Operational Tasks")
     selected_task = st.selectbox("choose a task:", ['Add new product', "Product history", "Place Reorder", "Receive Reorder"])
 
-    #--------------------------------------Add New Product----------------------------------------------------
+    #-----------------------------------Add New Product-------------------------------------------------------
     if selected_task=='Add new product':
         st.header("Add New Product")
         categories = get_categories(cursor)
@@ -110,3 +111,29 @@ elif option == 'Operational Tasks':
                 st.dataframe(df)
             else:
                 st.info("No history found for the product selected!")
+
+    #----------------------------------Place Reorder ---------------------------------------------------------
+    if selected_task == "Place Reorder":
+        st.header("Place a Reorder")
+
+        # get product list
+        products = get_all_products(cursor)
+        product_names = [p['product_name'] for p in products] 
+        product_ids = [p['product_id'] for p in products]
+
+        # user input
+        selected_product_name = st.selectbox("Select a Product", options=product_names)
+        reorder_quantity = st.number_input("Reorder Quantity", min_value=1, step=1)
+
+        if st.button("Place Reorder"):
+            if not selected_product_name:
+                st.error("Please select a product ")
+            elif reorder_quantity<=0:
+                st.error("Reorder quantity must be greater than 0")
+            else:
+                selected_product_id = product_ids[product_names.index(selected_product_name)]
+                try:
+                    place_reorder(cursor, db, selected_product_id, reorder_quantity)
+                    st.success(f"Order placed for {selected_product_name} with quantity: {reorder_quantity}")
+                except Exception as e:
+                    st.error(f"Error placing reorder: {e}")

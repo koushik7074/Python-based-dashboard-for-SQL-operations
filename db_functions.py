@@ -111,3 +111,10 @@ def get_product_history(cursor, product_id):
     cursor.execute(query, (product_id, ))
     return cursor.fetchall()
     
+def place_reorder(cursor, db, product_id, reorder_quantity):
+    query = """
+            insert into  reorders(reorder_id, product_id, reorder_quantity, reorder_date, status)
+            select max(reorder_id)+1, %s, %s, curdate(), "Ordered" from reorders;
+        """
+    cursor.execute(query, (product_id, reorder_quantity))
+    db.commit()
