@@ -99,3 +99,15 @@ def get_suppliers(cursor):
     cursor.execute("select supplier_id, supplier_name from suppliers order by supplier_name asc")
     return cursor.fetchall()
 
+def get_all_products(cursor):
+    cursor.execute("select product_id, product_name from products order by product_name")
+    return cursor.fetchall()
+
+def get_product_history(cursor, product_id):
+    query = """select * 
+                from product_inventory_history 
+                where product_id=%s
+                order by record_date desc """
+    cursor.execute(query, (product_id, ))
+    return cursor.fetchall()
+    
