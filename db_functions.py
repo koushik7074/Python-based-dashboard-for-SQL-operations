@@ -118,3 +118,18 @@ def place_reorder(cursor, db, product_id, reorder_quantity):
         """
     cursor.execute(query, (product_id, reorder_quantity))
     db.commit()
+
+def get_pending_reorders(cursor):
+    query = """
+            select r.reorder_id, p.product_name
+            from reorders as r
+            join products as p
+            on p.product_id = r.product_id
+            """  
+    cursor.execute(query)
+    return cursor.fetchall()
+
+def mark_reorder_as_received(cursor, db, reorder_id):
+    cursor.callproc("MarkReorderAsReceived",[reorder_id])
+    db.commit()
+    
